@@ -231,8 +231,8 @@ CSVをアプリへ取り込む
 ### 1. リポジトリを取得
 
 ```bash
-git clone <リポジトリURL>
-cd <プロジェクトフォルダ>
+git clone https://github.com/TakuroAnnoura/payment-notice-management-app.git
+cd payment-notice-management-app
 ```
 
 ### 2. 仮想環境を作成・有効化
@@ -280,6 +280,21 @@ python manage.py runserver
 ```text
 http://127.0.0.1:8000/
 ```
+
+---
+
+## デモデータ
+
+データベースファイルはリポジトリに含めていないため、初回セットアップ時のデータは空の状態です。
+
+動作確認用のCSVファイルを `test_data` フォルダに保存しています。
+
+* `demo_payments.csv`：通常データおよび重複候補を含む支払対象データ
+* `demo_errors.csv`：必須項目不足、税区分不正、発行番号重複の確認用データ
+
+管理画面から担当者を登録した後、CSV取込画面から上記ファイルを取り込むことで、主要機能を確認できます。
+
+発表用に作成した各ステータスや操作結果は、README内の画面イメージに掲載しています。
 
 ---
 
