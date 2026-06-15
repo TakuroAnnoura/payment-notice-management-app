@@ -1,0 +1,126 @@
+{% extends "payments/base.html" %}
+
+{% block title %}
+  処理エラー一覧
+{% endblock %}
+
+{% block content %}
+  <h2>処理エラー一覧</h2>
+
+  <p>
+    データ取込、通知書作成、確認時に発生した
+    エラーと対応状況を確認します。
+  </p>
+
+  <p>
+    <a href="{% url 'payments:processing_error_list' %}">
+      すべて
+    </a>
+    ／
+    <a href="{% url 'payments:processing_error_list' %}?status=open">
+      未対応・対応中
+    </a>
+    ／
+    <a href="{% url 'payments:processing_error_list' %}?status=unresolved">
+      未対応
+    </a>
+    ／
+    <a href="{% url 'payments:processing_error_list' %}?status=in_progress">
+      対応中
+    </a>
+    ／
+    <a href="{% url 'payments:processing_error_list' %}?status=resolved">
+      解消済み
+    </a>
+  </p>
+
+  {% if current_status_label %}
+    <p>
+      絞り込み中：
+      <strong>{{ current_status_label }}</strong>
+    </p>
+  {% endif %}
+
+  <table>
+    <thead>
+      <tr>
+        <th>エラーID</th>
+        <th>対象</th>
+        <th>エラー種別</th>
+        <th>エラー内容</th>
+        <th>対象項目</th>
+        <th>対応状況</th>
+        <th>対応担当者</th>
+        <th>発生日時</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for error in processing_errors %}
+        <tr>
+          <td>
+            <a
+              href="{% url 'payments:processing_error_detail' error.pk %}"
+            >
+              {{ error.pk }}
+            </a>
+          </td>
+
+          <td>
+            {% if error.payment_record %}
+              <a
+                href="{% url 'payments:payment_record_detail' error.payment_record.pk %}"
+              >
+                {{ error.payment_record.issue_number }}
+              </a>
+
+            {% elif error.import_batch %}
+              {{ error.import_batch.file_name }}
+
+              {% if error.source_row_number %}
+                {{ error.source_row_number }}行目
+              {% endif %}
+
+            {% else %}
+              対象不明
+            {% endif %}
+          </td>
+
+          <td>
+            {{ error.get_error_type_display }}
+          </td>
+
+          <td>
+            {{ error.error_message|truncatechars:40 }}
+          </td>
+
+          <td>
+            {{ error.target_field|default:"―" }}
+          </td>
+
+          <td>
+            {{ error.get_resolution_status_display }}
+          </td>
+
+          <td>
+            {{ error.resolved_by|default:"未設定" }}
+          </td>
+
+          <td>
+            {{ error.occurred_at|date:"Y/m/d H:i" }}
+          </td>
+        </tr>
+
+      {% empty %}
+        <tr>
+          <td
+            colspan="8"
+            class="empty-message"
+          >
+            該当する処理エラーはありません。
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

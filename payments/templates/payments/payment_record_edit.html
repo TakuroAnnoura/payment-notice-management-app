@@ -1,0 +1,53 @@
+{% extends "payments/base.html" %}
+
+{% block title %}
+  支払対象データ修正
+{% endblock %}
+
+{% block content %}
+  <h2>支払対象データ修正</h2>
+
+  <p>
+    発行番号：
+    <strong>{{ payment_record.issue_number }}</strong>
+  </p>
+
+  <p>
+    会社名：
+    <strong>{{ payment_record.company_name }}</strong>
+  </p>
+
+  <div class="card">
+    <p>
+      確認担当者から要修正とされた内容を確認し、
+      必要な項目を修正してください。
+    </p>
+
+    {% if payment_record.confirmation_comment %}
+      <p>
+        <strong>修正理由：</strong>
+        {{ payment_record.confirmation_comment }}
+      </p>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+
+      {{ form.as_p }}
+
+      <button
+        class="button"
+        type="submit"
+      >
+        修正内容を保存する
+      </button>
+
+      <a
+        class="button secondary-button"
+        href="{% url 'payments:payment_record_detail' payment_record.pk %}"
+      >
+        キャンセル
+      </a>
+    </form>
+  </div>
+{% endblock %}

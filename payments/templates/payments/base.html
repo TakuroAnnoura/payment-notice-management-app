@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>
+      {% block title %}支払通知書管理{% endblock %}
+    </title>
+
+    <style>
+      body {
+        margin: 0;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background-color: #f4f6f8;
+        color: #222;
+      }
+
+      header {
+        background-color: #263238;
+        color: white;
+        padding: 16px 32px;
+      }
+
+      header h1 {
+        margin: 0 0 12px;
+        font-size: 22px;
+      }
+
+      nav a {
+        color: white;
+        margin-right: 20px;
+        text-decoration: none;
+      }
+
+      nav a:hover {
+        text-decoration: underline;
+      }
+
+      main {
+        max-width: 1200px;
+        margin: 32px auto;
+        padding: 0 24px;
+      }
+
+      .card-container {
+        display: grid;
+        grid-template-columns:
+          repeat(auto-fit, minmax(180px, 1fr));
+        gap: 20px;
+        margin-top: 24px;
+      }
+
+      .card {
+        background-color: white;
+        border-radius: 8px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+      }
+
+      .card h2 {
+        margin-top: 0;
+        font-size: 16px;
+        color: #555;
+      }
+
+      .count {
+        margin: 0;
+        font-size: 32px;
+        font-weight: bold;
+      }
+
+      table {
+        width: 100%;
+        margin-top: 24px;
+        border-collapse: collapse;
+        background-color: white;
+      }
+
+      th,
+      td {
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+        text-align: left;
+      }
+
+      th {
+        background-color: #eceff1;
+      }
+
+      .button {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 10px 18px;
+        border-radius: 5px;
+        background-color: #1565c0;
+        color: white;
+        text-decoration: none;
+      }
+
+      .empty-message {
+        padding: 32px;
+        text-align: center;
+        color: #666;
+      }
+
+      .card-link {
+        display: block;
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .card-link .card {
+        height: 100%;
+        box-sizing: border-box;
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+
+      .card-link:hover .card {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgb(0 0 0 / 14%);
+      }
+
+      .secondary-button {
+        background-color: #607d8b;
+      }
+
+      .dashboard-section {
+        margin-top: 32px;
+      }
+
+      .dashboard-section h3 {
+        margin-bottom: 8px;
+        font-size: 20px;
+      }
+
+      .alert-container {
+        max-width: 280px;
+        margin-top: 24px;
+      }
+
+      .alert-card {
+        border-left: 6px solid #c62828;
+      }
+      
+      .alert-card h2,
+      .alert-card .count {
+        color: #b71c1c;
+      }
+      
+      .status-badge {
+        display: inline-block;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: bold;
+        white-space: nowrap;
+      }
+
+      .badge-danger {
+        background-color: #ffebee;
+        color: #b71c1c;
+      }
+
+      .badge-warning {
+        background-color: #fff8e1;
+        color: #8d6e00;
+      }
+
+      .badge-success {
+        background-color: #e8f5e9;
+        color: #1b5e20;
+      }
+
+      .badge-neutral {
+        background-color: #eceff1;
+        color: #455a64;
+      }
+
+      .error-box,
+      .warning-box {
+        margin-top: 16px;
+        padding: 16px;
+        border-radius: 6px;
+        line-height: 1.6;
+      }
+
+      .error-box {
+        border-left: 6px solid #c62828;
+        background-color: #ffebee;
+        color: #b71c1c;
+      }
+
+      .warning-box {
+        border-left: 6px solid #f9a825;
+        background-color: #fff8e1;
+        color: #795548;
+      }
+
+      .nowrap {
+        white-space: nowrap;
+      }
+      
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h1>支払通知書作成・進捗管理アプリ</h1>
+
+      <nav>
+        <a href="{% url 'payments:home' %}">
+          ダッシュボード
+        </a>
+
+        <a href="{% url 'payments:import_payment_records' %}">
+          CSV取込
+        </a>
+
+        <a href="{% url 'payments:payment_record_list' %}">
+          支払対象一覧
+        </a>
+
+        <a href="{% url 'payments:processing_error_list' %}">
+          エラー一覧
+        </a>
+
+        <a href="/admin/">
+          管理画面
+        </a>
+      </nav>
+    </header>
+
+    <main>
+        {% if messages %}
+          {% for message in messages %}
+            <div class="card">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+  </body>
+</html>

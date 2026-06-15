@@ -1,0 +1,106 @@
+{% extends "payments/base.html" %}
+{% load humanize %}
+
+{% block title %}
+  支払対象一覧
+{% endblock %}
+
+{% block content %}
+  <h2>支払対象一覧</h2>
+
+  <p>
+    取り込まれた支払対象データと処理状況を確認します。
+  </p>
+
+  {% if current_status_label %}
+    <p>
+      絞り込み中：
+      <strong>{{ current_status_label }}</strong>
+
+      ／
+
+      <a href="{% url 'payments:payment_record_list' %}">
+        絞り込みを解除
+      </a>
+    </p>
+  {% endif %}
+
+  <table>
+    <thead>
+      <tr>
+        <th>発行番号</th>
+        <th>会社名</th>
+        <th>支払金額</th>
+        <th>支払日</th>
+        <th>税区分</th>
+        <th>ステータス</th>
+        <th>重複確認</th>
+        <th>作成担当</th>
+        <th>確認担当</th>
+        <th>確認コメント</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for record in payment_records %}
+        <tr>
+          <td>
+            <a href="{% url 'payments:payment_record_detail' record.pk %}">
+              {{ record.issue_number }}
+            </a>
+          </td>
+          <td>{{ record.company_name }}</td>
+          <td class="nowrap">{{ record.payment_amount|intcomma }}円</td>
+          <td>{{ record.payment_date|date:"Y/m/d" }}</td>
+          <td>{{ record.get_tax_type_display }}</td>
+          <td>{{ record.get_status_display }}</td>
+
+          <td>
+            {% if record.duplicate_check_result == "duplicate" %}
+              <span class="status-badge badge-danger">
+                重複確定・作成不可
+              </span>
+
+            {% elif record.duplicate_check_result == "allowed" %}
+              <span class="status-badge badge-success">
+                正当な別支払
+              </span>
+
+            {% elif record.has_duplicate_warning %}
+              <span class="status-badge badge-warning">
+                未確認
+              </span>
+
+            {% else %}
+              <span class="status-badge badge-neutral">
+                なし
+              </span>
+            {% endif %}
+          </td>
+
+          <td>
+            {{ record.created_by|default:"未設定" }}
+          </td>
+
+          <td>
+            {{ record.checked_by|default:"未設定" }}
+          </td>
+
+          <td>
+            {{ record.confirmation_comment|default:"―"|truncatechars:30 }}
+          </td>
+
+        </tr>
+      {% empty %}
+        <tr>
+          <td
+            colspan="10"
+            class="empty-message"
+          >
+            支払対象データはまだ登録されていません。
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "payments/base.html" %}
+
+{% block title %}
+  ダッシュボード
+{% endblock %}
+
+{% block content %}
+  <h2>ダッシュボード</h2>
+
+  <p>
+    支払通知書作成業務の進捗状況を確認します。
+  </p>
+
+  <section class="dashboard-section">
+    <h3>業務進捗</h3>
+
+    <p>
+      支払対象データの現在の処理状況です。
+    </p>
+
+    <div class="card-container">
+      <a
+        class="card-link"
+        href="{% url 'payments:payment_record_list' %}"
+      >
+        <div class="card">
+          <h2>全体件数</h2>
+          <p class="count">{{ total_count }}</p>
+        </div>
+      </a>
+
+      <a
+        class="card-link"
+        href="{% url 'payments:payment_record_list' %}?status=imported"
+      >
+        <div class="card">
+          <h2>取込済み</h2>
+          <p class="count">{{ imported_count }}</p>
+        </div>
+      </a>
+
+      <a
+        class="card-link"
+        href="{% url 'payments:payment_record_list' %}?status=waiting_confirmation"
+      >
+        <div class="card">
+          <h2>確認待ち</h2>
+          <p class="count">{{ waiting_count }}</p>
+        </div>
+      </a>
+
+      <a
+        class="card-link"
+        href="{% url 'payments:payment_record_list' %}?status=correction_required"
+      >
+        <div class="card">
+          <h2>要修正</h2>
+          <p class="count">
+            {{ correction_required_count }}
+          </p>
+        </div>
+      </a>
+
+      <a
+        class="card-link"
+        href="{% url 'payments:payment_record_list' %}?status=confirmed"
+      >
+        <div class="card">
+          <h2>確認済み</h2>
+          <p class="count">{{ confirmed_count }}</p>
+        </div>
+      </a>
+
+      <a
+        class="card-link"
+        href="{% url 'payments:payment_record_list' %}?status=completed"
+      >
+        <div class="card">
+          <h2>完了</h2>
+          <p class="count">{{ completed_count }}</p>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <section class="dashboard-section">
+    <h3>要対応</h3>
+
+    <p>
+      現在、確認または対応が必要な処理エラーです。
+    </p>
+
+    <div class="alert-container">
+      <a
+        class="card-link"
+        href="{% url 'payments:processing_error_list' %}?status=open"
+      >
+        <div class="card alert-card">
+          <h2>未解消エラー</h2>
+          <p class="count">{{ error_count }}</p>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <a
+    class="button"
+    href="{% url 'payments:payment_record_list' %}"
+  >
+    支払対象一覧を確認する
+  </a>
+{% endblock %}

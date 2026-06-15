@@ -1,0 +1,509 @@
+{% extends "payments/base.html" %}
+{% load humanize %}
+
+{% block title %}
+  支払対象詳細
+{% endblock %}
+
+{% block content %}
+  <h2>支払対象詳細</h2>
+
+  <p>
+    <a href="{% url 'payments:payment_record_list' %}">
+      ← 支払対象一覧へ戻る
+    </a>
+  </p>
+
+  <div class="card">
+    <h3>基本情報</h3>
+
+    <table>
+      <tbody>
+        <tr>
+          <th>発行番号</th>
+          <td>{{ payment_record.issue_number }}</td>
+        </tr>
+        <tr>
+          <th>会社名</th>
+          <td>{{ payment_record.company_name }}</td>
+        </tr>
+        <tr>
+          <th>住所</th>
+          <td>{{ payment_record.address }}</td>
+        </tr>
+        <tr>
+          <th>事業者登録番号</th>
+          <td>
+            {{ payment_record.registration_number|default:"未設定" }}
+          </td>
+        </tr>
+        <tr>
+          <th>支払金額</th>
+          <td>{{ payment_record.payment_amount|intcomma }}円</td>
+        </tr>
+        <tr>
+          <th>支払日</th>
+          <td>
+            {{ payment_record.payment_date|date:"Y/m/d" }}
+          </td>
+        </tr>
+        <tr>
+          <th>内訳</th>
+          <td>{{ payment_record.description }}</td>
+        </tr>
+        <tr>
+          <th>キャンペーン名</th>
+          <td>
+            {{ payment_record.campaign_name|default:"未設定" }}
+          </td>
+        </tr>
+        <tr>
+          <th>キャンペーン区分</th>
+          <td>
+            {{ payment_record.campaign_type|default:"未設定" }}
+          </td>
+        </tr>
+        <tr>
+          <th>税区分</th>
+          <td>{{ payment_record.get_tax_type_display }}</td>
+        </tr>
+        <tr>
+          <th>備考</th>
+          <td>{{ payment_record.notes|default:"なし" }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>処理状況</h3>
+
+    <table>
+      <tbody>
+        <tr>
+          <th>ステータス</th>
+          <td>{{ payment_record.get_status_display }}</td>
+        </tr>
+        <tr>
+          <th>重複警告</th>
+          <td>
+            {% if payment_record.has_duplicate_warning %}
+              あり
+            {% else %}
+              なし
+            {% endif %}
+          </td>
+        </tr>
+        <tr>
+          <th>重複確認結果</th>
+          <td>
+            {{ payment_record.get_duplicate_check_result_display }}
+          </td>
+        </tr>
+        <tr>
+          <th>取込担当者</th>
+          <td>
+            {{ payment_record.import_batch.imported_by|default:"未設定" }}
+          </td>
+        </tr>
+        <tr>
+          <th>作成担当者</th>
+          <td>
+            {{ payment_record.created_by|default:"未設定" }}
+          </td>
+        </tr>
+        <tr>
+          <th>確認担当者</th>
+          <td>
+            {{ payment_record.checked_by|default:"未設定" }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  {% if payment_record.has_duplicate_warning %}
+    <div class="card">
+      <h3>重複候補の確認</h3>
+
+      <p>
+        会社名、支払金額、支払日が一致する
+        既存データがあります。
+      </p>
+
+      {% if payment_record.duplicate_check_result == "unchecked" %}
+        <p>
+          内容を確認し、正当な別支払か
+          重複データかを判断してください。
+        </p>
+
+        <form
+          method="post"
+          action="{% url 'payments:review_duplicate_candidate' payment_record.pk %}"
+        >
+          {% csrf_token %}
+
+          {{ duplicate_review_form.as_p }}
+
+          <button
+            class="button"
+            type="submit"
+          >
+            重複確認結果を登録する
+          </button>
+        </form>
+
+      {% elif payment_record.duplicate_check_result == "allowed" %}
+        <p>
+          <strong>
+            正当な別支払として確認済みです。
+          </strong>
+        </p>
+
+        <p>
+          支払通知書の作成を続行できます。
+        </p>
+
+      {% elif payment_record.duplicate_check_result == "duplicate" %}
+        <p>
+          <strong>
+            重複データとして確定しています。
+          </strong>
+        </p>
+
+        <p>
+          このデータから支払通知書は作成できません。
+        </p>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  {% if payment_record.status == "correction_required" %}
+    <div class="card">
+      <h3>修正対応</h3>
+
+      <p>
+        確認担当者から要修正とされています。
+        データを修正した後、支払通知書を再作成してください。
+      </p>
+
+      {% if payment_record.confirmation_comment %}
+        <p>
+          <strong>修正理由：</strong>
+          {{ payment_record.confirmation_comment }}
+        </p>
+      {% endif %}
+
+      <a
+        class="button"
+        href="{% url 'payments:edit_payment_record' payment_record.pk %}"
+      >
+        支払対象データを修正する
+      </a>
+    </div>
+  {% endif %}
+
+  
+  <div class="card">
+    <h3>支払通知書作成</h3>
+
+    {% if payment_record.duplicate_check_result == "duplicate" %}
+      <div class="error-box">
+        この支払対象は重複確定となっているため、
+        支払通知書を作成できません。
+      </div>
+
+    {% elif payment_record.has_duplicate_warning and payment_record.duplicate_check_result == "unchecked" %}
+      <div class="warning-box">
+        重複警告が未確認です。
+        重複候補の確認を完了してから、
+        支払通知書を作成してください。
+      </div>
+
+    {% else %}
+      <p>
+        登録されている支払対象データから、
+        Excel形式の支払通知書を作成します。
+      </p>
+
+      <form
+        method="post"
+        action="{% url 'payments:generate_payment_document' payment_record.pk %}"
+      >
+        {% csrf_token %}
+
+        {{ generation_form.as_p }}
+
+        <button
+          class="button"
+          type="submit"
+        >
+          {% if payment_record.generated_documents.all %}
+            支払通知書を再作成する
+          {% else %}
+            支払通知書を作成する
+          {% endif %}
+        </button>
+      </form>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h3>作成済み支払通知書</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ファイル名</th>
+          <th>バージョン</th>
+          <th>状態</th>
+          <th>作成担当者</th>
+          <th>作成日時</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for document in payment_record.generated_documents.all %}
+          <tr>
+            <td>{{ document.file_name }}</td>
+            <td>v{{ document.version }}</td>
+            <td>
+              {% if document.is_current %}
+                現行版
+              {% else %}
+                旧版
+              {% endif %}
+            </td>
+            <td>
+              {{ document.created_by|default:"未設定" }}
+            </td>
+            <td>
+              {{ document.created_at|date:"Y/m/d H:i" }}
+            </td>
+            <td>
+              <a
+                href="{% url 'payments:download_generated_document' document.pk %}"
+              >
+                ダウンロード
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="6">
+              支払通知書はまだ作成されていません。
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>支払通知書の確認</h3>
+
+    {% if not current_document %}
+      <p>
+        支払通知書がまだ作成されていません。
+      </p>
+
+    {% elif payment_record.status == "waiting_confirmation" %}
+      <p>
+        現行版の支払通知書と元データを確認し、
+        確認結果を登録してください。
+      </p>
+
+      <p>
+        確認対象：
+        <strong>{{ current_document.file_name }}</strong>
+      </p>
+
+      <form
+        method="post"
+        action="{% url 'payments:confirm_payment_record' payment_record.pk %}"
+      >
+        {% csrf_token %}
+
+        {{ confirmation_form.as_p }}
+
+        <button
+          class="button"
+          type="submit"
+        >
+          確認結果を登録する
+        </button>
+      </form>
+
+    {% else %}
+      <table>
+        <tbody>
+          <tr>
+            <th>現在の確認状態</th>
+            <td>
+              {{ payment_record.get_status_display }}
+            </td>
+          </tr>
+
+          <tr>
+            <th>確認担当者</th>
+            <td>
+              {{ payment_record.checked_by|default:"未設定" }}
+            </td>
+          </tr>
+
+          <tr>
+            <th>確認コメント</th>
+            <td>
+              {{ payment_record.confirmation_comment|default:"なし" }}
+            </td>
+          </tr>
+
+          <tr>
+            <th>確認日時</th>
+            <td>
+              {% if payment_record.checked_at %}
+                {{ payment_record.checked_at|date:"Y/m/d H:i" }}
+              {% else %}
+                未確認
+              {% endif %}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+
+  {% if payment_record.status == "confirmed" %}
+    <div class="card">
+      <h3>完了処理</h3>
+
+      <p>
+        支払通知書の確認が完了しています。
+        管理者/SVが最終確認し、業務を完了してください。
+      </p>
+
+      <form
+        method="post"
+        action="{% url 'payments:complete_payment_record' payment_record.pk %}"
+      >
+        {% csrf_token %}
+
+        {{ completion_form.as_p }}
+
+        <button
+          class="button"
+          type="submit"
+        >
+          完了にする
+        </button>
+      </form>
+    </div>
+  {% elif payment_record.status == "completed" %}
+    <div class="card">
+      <h3>完了情報</h3>
+
+      <p>
+        この支払対象の処理は完了しています。
+      </p>
+
+      <p>
+        完了日時：
+        {{ payment_record.completed_at|date:"Y/m/d H:i" }}
+      </p>
+    </div>
+  {% endif %}
+
+  <div class="card">
+    <h3>取込情報</h3>
+
+    <table>
+      <tbody>
+        <tr>
+          <th>取込ファイル</th>
+          <td>{{ payment_record.import_batch.file_name }}</td>
+        </tr>
+        <tr>
+          <th>取込元行番号</th>
+          <td>{{ payment_record.source_row_number }}行目</td>
+        </tr>
+        <tr>
+          <th>取込日時</th>
+          <td>
+            {{ payment_record.import_batch.imported_at|date:"Y/m/d H:i" }}
+          </td>
+        </tr>
+        <tr>
+          <th>最終更新日時</th>
+          <td>
+            {{ payment_record.updated_at|date:"Y/m/d H:i" }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>処理エラー</h3>
+
+    {% if payment_record.processing_errors.all %}
+      <table>
+        <thead>
+          <tr>
+            <th>種別</th>
+            <th>内容</th>
+            <th>対象項目</th>
+            <th>対応状況</th>
+            <th>発生日時</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for error in payment_record.processing_errors.all %}
+            <tr>
+              <td>{{ error.get_error_type_display }}</td>
+              <td>{{ error.error_message }}</td>
+              <td>{{ error.target_field|default:"―" }}</td>
+              <td>{{ error.get_resolution_status_display }}</td>
+              <td>{{ error.occurred_at|date:"Y/m/d H:i" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>この支払対象に登録されたエラーはありません。</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h3>作業ログ</h3>
+
+    {% if payment_record.work_logs.all %}
+      <table>
+        <thead>
+          <tr>
+            <th>操作日時</th>
+            <th>操作者</th>
+            <th>操作種別</th>
+            <th>操作内容</th>
+            <th>変更前</th>
+            <th>変更後</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in payment_record.work_logs.all %}
+            <tr>
+              <td>{{ log.created_at|date:"Y/m/d H:i" }}</td>
+              <td>{{ log.operator|default:"未設定" }}</td>
+              <td>{{ log.get_action_type_display }}</td>
+              <td>{{ log.action_detail }}</td>
+              <td>{{ log.old_value|default:"―" }}</td>
+              <td>{{ log.new_value|default:"―" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p>作業ログはありません。</p>
+    {% endif %}
+  </div>
+{% endblock %}

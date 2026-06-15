@@ -1,0 +1,45 @@
+{% extends "payments/base.html" %}
+
+{% block title %}
+  CSV取込
+{% endblock %}
+
+{% block content %}
+  <h2>支払対象CSV取込</h2>
+
+  <p>
+    営業担当者から受け取った支払対象者一覧を
+    CSV形式で取り込みます。
+  </p>
+
+  <div class="card">
+    <form
+      method="post"
+      enctype="multipart/form-data"
+    >
+      {% csrf_token %}
+
+      {{ form.as_p }}
+
+      <button
+        class="button"
+        type="submit"
+      >
+        CSVを取り込む
+      </button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>必須列</h3>
+
+    <p>
+      発行番号、会社名、住所、支払金額、
+      支払日、内訳、税区分
+    </p>
+
+    <p>
+      CSVはUTF-8またはShift_JIS系（CP932）形式で保存してください。
+    </p>
+  </div>
+{% endblock %}
