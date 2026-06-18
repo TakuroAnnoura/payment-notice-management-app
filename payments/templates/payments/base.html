@@ -207,6 +207,17 @@
       .nowrap {
         white-space: nowrap;
       }
+
+      .demo-notice {
+        margin: 16px auto;
+        padding: 12px 16px;
+        max-width: 1200px;
+        border: 1px solid #d6a000;
+        border-radius: 6px;
+        background-color: #fff8dc;
+        color: #664d00;
+        line-height: 1.6;
+      }
       
     </style>
   </head>
@@ -237,6 +248,13 @@
         </a>
       </nav>
     </header>
+
+    {% if read_only_demo %}
+      <div class="demo-notice">
+        <strong>閲覧専用デモ</strong>
+        このサイトでは、データの登録・変更・削除操作を無効にしています。
+      </div>
+    {% endif %}
 
     <main>
         {% if messages %}
