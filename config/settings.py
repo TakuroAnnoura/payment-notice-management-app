@@ -31,6 +31,13 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+READ_ONLY_DEMO = (
+    os.environ.get(
+        "DJANGO_READ_ONLY_DEMO",
+        "False",
+    ).lower()
+    == "true"
+)
 
 # Application definition
 
@@ -52,6 +59,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    "payments.middleware.ReadOnlyDemoMiddleware",
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -67,6 +75,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                "payments.context_processors.demo_settings",
             ],
         },
     },
