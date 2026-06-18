@@ -7,7 +7,7 @@ from pathlib import Path
 
 from django.conf import settings
 from django.contrib import messages
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 from django.db import transaction
@@ -31,6 +31,35 @@ from .models import (
 )
 from .services.document_generator import (
     generate_payment_notice,
+)
+
+CSV_TEMPLATE_COLUMNS = (
+    "発行番号",
+    "会社名",
+    "住所",
+    "事業者登録番号",
+    "支払金額",
+    "支払日",
+    "内訳",
+    "キャンペーン名",
+    "キャンペーン区分",
+    "税区分",
+    "備考",
+)
+
+
+CSV_TEMPLATE_SAMPLE_ROW = (
+    "SAMPLE-2026-001",
+    "株式会社テンプレート確認用",
+    "福岡県福岡市博多区〇〇9-9-9",
+    "T9000000000001",
+    "12345",
+    "2026-12-31",
+    "CSVテンプレート入力例",
+    "テンプレート確認キャンペーン",
+    "通常キャンペーン",
+    "税率10％",
+    "入力例です",
 )
 
 
@@ -1585,4 +1614,55 @@ def review_duplicate_candidate(request, pk):
     return redirect(
         "payments:payment_record_detail",
         pk=payment_record.pk,
+    )
+
+
+def build_payment_csv_template(
+    *,
+    include_sample=False,
+):
+    """支払対象CSVテンプレートをレスポンスとして作成する。"""
+
+    if include_sample:
+        filename = "payment_import_template_sample.csv"
+    else:
+        filename = "payment_import_template.csv"
+
+    response = HttpResponse(
+        content_type="text/csv; charset=utf-8",
+    )
+    response["Content-Disposition"] = (
+        f'attachment; filename="{filename}"'
+    )
+
+    # 日本語版Excelでも文字化けしにくいUTF-8 BOMを付ける
+    response.write("\ufeff")
+
+    writer = csv.writer(
+        response,
+        lineterminator="\r\n",
+    )
+    writer.writerow(
+        CSV_TEMPLATE_COLUMNS
+    )
+
+    if include_sample:
+        writer.writerow(
+            CSV_TEMPLATE_SAMPLE_ROW
+        )
+
+    return response
+
+
+def download_payment_csv_template(request):
+    """ヘッダーだけのCSVテンプレートをダウンロードする。"""
+
+    return build_payment_csv_template()
+
+
+def download_payment_csv_sample(request):
+    """入力例付きCSVテンプレートをダウンロードする。"""
+
+    return build_payment_csv_template(
+        include_sample=True,
     )

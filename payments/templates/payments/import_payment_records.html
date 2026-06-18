@@ -12,6 +12,34 @@
     CSV形式で取り込みます。
   </p>
 
+  <section>
+    <h3>CSVテンプレート</h3>
+
+    <p>
+      指定の列名と入力形式を使用するため、
+      以下のテンプレートをご利用ください。
+    </p>
+
+    <p>
+      <a href="{% url 'payments:download_payment_csv_template' %}">
+        空のCSVテンプレートをダウンロード
+      </a>
+    </p>
+
+    <p>
+      <a href="{% url 'payments:download_payment_csv_sample' %}">
+        入力例付きCSVテンプレートをダウンロード
+      </a>
+    </p>
+
+    <ul>
+      <li>支払日：YYYY-MM-DD形式</li>
+      <li>事業者登録番号：T＋13桁の数字</li>
+      <li>税区分：税率10％／税考慮なし／要確認</li>
+      <li>文字コード：UTF-8またはCP932</li>
+    </ul>
+  </section>
+
   <div class="card">
     <form
       method="post"
