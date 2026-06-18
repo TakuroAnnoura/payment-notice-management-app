@@ -17,6 +17,16 @@ urlpatterns = [
         name="import_payment_records",
     ),
     path(
+        "import/template/",
+        views.download_payment_csv_template,
+        name="download_payment_csv_template",
+    ),
+    path(
+        "import/template/sample/",
+        views.download_payment_csv_sample,
+        name="download_payment_csv_sample",
+    ),
+    path(
         "errors/",
         views.processing_error_list,
         name="processing_error_list",
