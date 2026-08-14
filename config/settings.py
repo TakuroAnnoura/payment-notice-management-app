@@ -36,10 +36,12 @@ ALLOWED_HOSTS = [
     "TakuroAnnoura.pythonanywhere.com",
     "127.0.0.1",
     "localhost",
+    "paymentnoticeapp.pythonanywhere.com",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://TakuroAnnoura.pythonanywhere.com",
+    "https://paymentnoticeapp.pythonanywhere.com",
 ]
 
 READ_ONLY_DEMO = (
